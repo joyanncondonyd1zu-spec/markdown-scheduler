@@ -1,0 +1,1450 @@
+version: 2.1
+
+jobs:
+  package_CORE-183:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Chunk raw buffer
+          command: |
+            mkdir -p /var/tmp/ws
+            set +o pipefail 2>/dev/null; seq 1 1446470 | sha256sum > /var/tmp/ws/step-17.out; true
+            du -h /var/tmp/ws/step-17.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - step-17.out
+  CORE-183:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/step-17.out > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore vendored sources
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  step2_APP-58:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Compute spill delta
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; dd if=/dev/zero bs=1M count=23 2>/dev/null | gzip -9 | wc -c; true ; } > /var/tmp/ws/2023-04-28.data
+            du -h /var/tmp/ws/2023-04-28.data
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - 2023-04-28.data
+  APP-58:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/2023-04-28.data > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch fixtures
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  inspect_PrepareImage:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Prepare block cipher
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 324164 | awk 'END{print NR}'; true ; } > /var/tmp/ws/full_step_output.log
+            du -h /var/tmp/ws/full_step_output.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - full_step_output.log
+  PrepareImage:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/full_step_output.log > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Sync asset bundles
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  wire_fix-2498:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Compile stats index
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=0;i<453944;i++) printf "%d\n", (i*7919)%2147483647}' | wc -l; true ; } > /var/tmp/ws/stats.json
+            du -h /var/tmp/ws/stats.json
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - stats.json
+  fix-2498:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/stats.json > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack toolkit
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  canary1_ga-v6:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Mix shuffle salt
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 186388 | awk '{s+=$1}END{print s}'; true ; } > /var/tmp/ws/primary_task_output.log
+            du -h /var/tmp/ws/primary_task_output.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - primary_task_output.log
+  ga-v6:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/trace.gz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Hydrate workspace
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  kick_nebula-plus:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Compute aggregate hash
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{srand();s=0;for(i=0;i<350077;i++)s+=rand();printf "%.4f\n",s}'; true ; } > /var/tmp/ws/step-done.log
+            du -h /var/tmp/ws/step-done.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - step-done.log
+  nebula-plus:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/trace.gz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  prefetch_jun5-release:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Score branch coverage
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; tr -dc '0-9' </dev/urandom | head -c 2252800 | wc -c; true ; } > /var/tmp/ws/step-3.log
+            du -h /var/tmp/ws/step-3.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - step-3.log
+  jun5-release:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/step-3.log > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore build cache
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  bake_d-old:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Rank query plans
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( echo "init"; for i in $(seq 1 9506); do echo "line $i"; done ) | sort | md5sum; true ; } > /var/tmp/ws/READY
+            du -h /var/tmp/ws/READY
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - READY
+  d-old:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/READY > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Pull reference data
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  alpha_go-live:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Compute slot digest
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 3145728 /dev/urandom | gzip -1 | wc -c; true ; } > /var/tmp/ws/handoff.state
+            du -h /var/tmp/ws/handoff.state
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - handoff.state
+  go-live:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/trace.gz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Stage inputs
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  preinit_PrepareTests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Fold integer series
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=0;i<128611;i++) printf "%d\n", (i*7919)%2147483647}' | wc -l; true ; } > /var/tmp/ws/292.out
+            du -h /var/tmp/ws/292.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - 292.out
+  PrepareTests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/292.out > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack bundle
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  go_jun4-ship:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Reduce text corpus
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( for i in $(seq 1 12753); do echo "row-$i-$RANDOM"; done ) | md5sum; true ; } > /var/tmp/ws/handover.state
+            du -h /var/tmp/ws/handover.state
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - handover.state
+  jun4-ship:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/stats.tsv > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Rehydrate tree
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  gamma_node18-test:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Fold data streams
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( echo "hdr"; seq 1 132430; echo "ftr" ) | wc -l; true ; } > /var/tmp/ws/.pid
+            du -h /var/tmp/ws/.pid
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - .pid
+  node18-test:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/trace.gz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch corpus
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  Delta_py311-test:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Mirror config bundle
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; yes 'line' | head -n 403278 | awk '{print NR, $0}' | tail -1; true ; } > /var/tmp/ws/artifact.tgz
+            du -h /var/tmp/ws/artifact.tgz
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - artifact.tgz
+  py311-test:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/artifact.tgz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Checkout vendored deps
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  ensure_Package_Service9:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Record manifest digest
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 20971520 /dev/urandom | od -An -x | wc -w; true ; } > /var/tmp/ws/stage-done.txt
+            du -h /var/tmp/ws/stage-done.txt
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - stage-done.txt
+  Package_Service9:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/stage-done.txt > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Prime workspace
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  Beta_verify:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Reduce row partitions
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 13631488 /dev/urandom | od -An -x | wc -w; true ; } > /var/tmp/ws/main_phase_output.log
+            du -h /var/tmp/ws/main_phase_output.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - main_phase_output.log
+  verify:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/main_phase_output.log > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack payload
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  warmup_sierra:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Enumerate bucket keys
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 368589 | sha1sum; true ; } > /var/tmp/ws/full_phase_output.txt
+            du -h /var/tmp/ws/full_phase_output.txt
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - full_phase_output.txt
+  sierra:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/full_phase_output.txt > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore snapshot
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  phase2_ruby3-cov:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Pack vendor fragments
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( for i in $(seq 1 26509); do printf "%08x\n" $RANDOM; done ) | sort | md5sum; true ; } > /var/tmp/ws/phase-ok.out
+            du -h /var/tmp/ws/phase-ok.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - phase-ok.out
+  ruby3-cov:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/phase-ok.out > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch sources
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  generate_v8-rc2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Collect poll frames
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; dd if=/dev/urandom bs=1k count=1200 2>/dev/null | gzip -6 | wc -c; true ; } > /var/tmp/ws/stats.tsv
+            du -h /var/tmp/ws/stats.tsv
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - stats.tsv
+  v8-rc2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/stats.tsv > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unroll archive
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  p2_API-374:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Flush pipeline cache
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 310673 | awk '{s+=$1}END{print s}'; true ; } > /var/tmp/ws/buffer.raw
+            du -h /var/tmp/ws/buffer.raw
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - buffer.raw
+  API-374:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/stats.tsv > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Seed workspace
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  g2_build-end-to-end-docker-image:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Fold branch counters
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 28311552 /dev/urandom | gzip -1 | wc -c; true ; } > /var/tmp/ws/trace.gz
+            du -h /var/tmp/ws/trace.gz
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - trace.gz
+  build-end-to-end-docker-image:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/trace.gz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack sources
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  audit_DATA-608:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Prime cache tables
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( for i in $(seq 1 19824); do echo "row-$i-$RANDOM"; done ) | md5sum; true ; } > /var/tmp/ws/metrics.tsv
+            du -h /var/tmp/ws/metrics.tsv
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - metrics.tsv
+  DATA-608:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/metrics.tsv > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore vendored sources
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  hydrate_deploy:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Measure branch cost
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{srand();s=0;for(i=0;i<326785;i++)s+=rand();printf "%.4f\n",s}'; true ; } > /var/tmp/ws/32.out
+            du -h /var/tmp/ws/32.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - 32.out
+  deploy:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/trace.gz > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch fixtures
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  precheck_bug-3670:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Scan prime offsets
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; dd if=/dev/zero bs=1M count=17 2>/dev/null | gzip -9 | wc -c; true ; } > /var/tmp/ws/metrics.jsonl
+            du -h /var/tmp/ws/metrics.jsonl
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - metrics.jsonl
+  bug-3670:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/metrics.jsonl > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Sync asset bundles
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  vendor_v4-canary2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Enumerate scalar triples
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 462570 | awk 'NR>9867 && NR<15922{s+=$1}END{print s}'; true ; } > /var/tmp/ws/passoff.txt
+            du -h /var/tmp/ws/passoff.txt
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - passoff.txt
+  v4-canary2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/passoff.txt > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack toolkit
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  inspect_hotfix-4234:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Rank ordinal values
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 18874368 /dev/urandom | gzip -1 | wc -c; true ; } > /var/tmp/ws/OK
+            du -h /var/tmp/ws/OK
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - OK
+  hotfix-4234:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/OK > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Hydrate workspace
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  Alpha_MERGE_DEV:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Aggregate run counters
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; cat /dev/urandom | tr -dc '[:xdigit:]' | head -c 18432 | wc -c; true ; } > /var/tmp/ws/timings.json
+            du -h /var/tmp/ws/timings.json
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - timings.json
+  MERGE_DEV:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/timings.json > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  C_feat-5376:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Normalize counter rings
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 449468 | tr '0-9' 'a-j' | wc -c; true ; } > /var/tmp/ws/counts.jsonl
+            du -h /var/tmp/ws/counts.jsonl
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - counts.jsonl
+  feat-5376:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/counts.jsonl > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore build cache
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  do_india-6:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Normalize path list
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 223140 | awk '{print $1*$1}' | sha1sum | cut -c1-24; true ; } > /var/tmp/ws/364a.out
+            du -h /var/tmp/ws/364a.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - 364a.out
+  india-6:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/364a.out > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Pull reference data
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  reserve_perseus-plus:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Project latency curve
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( echo "hdr"; seq 1 101350; echo "ftr" ) | wc -l; true ; } > /var/tmp/ws/primary_step_output.out
+            du -h /var/tmp/ws/primary_step_output.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - primary_step_output.out
+  perseus-plus:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/primary_step_output.out > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Stage inputs
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+  teardown_andromeda-v2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Enumerate line counts
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 22119 | awk '{if($1%97==0)c++}END{print c}'; true ; } > /var/tmp/ws/final.log
+            du -h /var/tmp/ws/final.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - final.log
+  andromeda-v2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Verify previous
+          command: |
+            cat /var/tmp/ws/final.log > /dev/null; echo "read ok"
+      - run:
+          name: Retrieve tree
+          command: git clone -q https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack bundle
+          command: bunzip2 -c main-pkg.tar.bz2 | tar xf -
+      - run:
+          no_output_timeout: 106m
+          command: /bin/sh -c "./helper"
+
+  canary_perseus-plus_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Reconcile output files
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; tr -dc '0-9' </dev/urandom | head -c 1126400 | wc -c; true ; } > /var/tmp/ws/primary_step_output.out
+            du -h /var/tmp/ws/primary_step_output.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - primary_step_output.out
+  cleanup_verify_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Build adjacency map
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=1;i<=48463;i++){x=sqrt(i);y=int(x);if(y*y==i)c++}print c}'; true ; } > /var/tmp/ws/main_phase_output.log
+            du -h /var/tmp/ws/main_phase_output.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - main_phase_output.log
+  stepA_PrepareTests_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Snapshot heap stats
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( echo "hdr"; seq 1 26540; echo "ftr" ) | wc -l; true ; } > /var/tmp/ws/292.out
+            du -h /var/tmp/ws/292.out
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - 292.out
+  ctx_APP-58_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Fuse row chunks
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 19922944 /dev/urandom | od -An -x | wc -w; true ; } > /var/tmp/ws/2023-04-28.data
+            du -h /var/tmp/ws/2023-04-28.data
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - 2023-04-28.data
+  verify_bug-3670_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Rotate build log
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; head -c 22020096 /dev/urandom | od -An -x | wc -w; true ; } > /var/tmp/ws/metrics.jsonl
+            du -h /var/tmp/ws/metrics.jsonl
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - metrics.jsonl
+  alpha_fix-2498_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Mint batch slot
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; ( for i in $(seq 1 8050); do echo "row-$i-$RANDOM"; done ) | md5sum; true ; } > /var/tmp/ws/stats.json
+            du -h /var/tmp/ws/stats.json
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - stats.json
+  phase_feat-5376_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Validate checksum roster
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 252000 | awk '{a[$1%17]++}END{for(k in a) print k,a[k]}' | sort -n; true ; } > /var/tmp/ws/counts.jsonl
+            du -h /var/tmp/ws/counts.jsonl
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - counts.jsonl
+  reserve_jun5-release_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Collate dictionary rows
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; yes 'line' | head -n 197031 | awk '{print NR, $0}' | tail -1; true ; } > /var/tmp/ws/step-3.log
+            du -h /var/tmp/ws/step-3.log
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - step-3.log
+  A_d-old_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /var/tmp/ws
+      - run:
+          name: Store intermediate blob
+          command: |
+            mkdir -p /var/tmp/ws
+            { set +o pipefail 2>/dev/null; seq 1 355563 | awk 'END{print NR}'; true ; } > /var/tmp/ws/READY
+            du -h /var/tmp/ws/READY
+      - persist_to_workspace:
+          root: /var/tmp/ws
+          paths:
+            - READY
+workflows:
+  run:
+    jobs:
+      - g2_build-end-to-end-docker-image
+      - alpha_go-live
+      - canary1_ga-v6
+      - build-end-to-end-docker-image:
+          requires:
+            - g2_build-end-to-end-docker-image
+            - alpha_go-live
+            - canary1_ga-v6
+      - go-live:
+          requires:
+            - g2_build-end-to-end-docker-image
+            - alpha_go-live
+            - canary1_ga-v6
+      - ga-v6:
+          requires:
+            - g2_build-end-to-end-docker-image
+            - alpha_go-live
+            - canary1_ga-v6
+      - node18-test:
+          requires:
+            - g2_build-end-to-end-docker-image
+            - alpha_go-live
+            - canary1_ga-v6
+      - deploy:
+          requires:
+            - g2_build-end-to-end-docker-image
+            - alpha_go-live
+            - canary1_ga-v6
+      - nebula-plus:
+          requires:
+            - g2_build-end-to-end-docker-image
+            - alpha_go-live
+            - canary1_ga-v6
+      - reserve_perseus-plus
+      - canary_perseus-plus_2:
+          requires:
+            - reserve_perseus-plus
+      - perseus-plus:
+          requires:
+            - canary_perseus-plus_2
+      - Beta_verify:
+          requires:
+            - canary_perseus-plus_2
+      - cleanup_verify_2:
+          requires:
+            - Beta_verify
+      - verify:
+          requires:
+            - cleanup_verify_2
+      - preinit_PrepareTests:
+          requires:
+            - cleanup_verify_2
+      - stepA_PrepareTests_2:
+          requires:
+            - preinit_PrepareTests
+      - PrepareTests:
+          requires:
+            - stepA_PrepareTests_2
+      - step2_APP-58:
+          requires:
+            - stepA_PrepareTests_2
+      - ctx_APP-58_2:
+          requires:
+            - step2_APP-58
+      - APP-58:
+          requires:
+            - ctx_APP-58_2
+      - precheck_bug-3670:
+          requires:
+            - ctx_APP-58_2
+      - verify_bug-3670_2:
+          requires:
+            - precheck_bug-3670
+      - bug-3670:
+          requires:
+            - verify_bug-3670_2
+      - generate_v8-rc2
+      - go_jun4-ship
+      - v8-rc2:
+          requires:
+            - generate_v8-rc2
+            - go_jun4-ship
+      - jun4-ship:
+          requires:
+            - generate_v8-rc2
+            - go_jun4-ship
+      - API-374:
+          requires:
+            - generate_v8-rc2
+            - go_jun4-ship
+      - wire_fix-2498
+      - alpha_fix-2498_2:
+          requires:
+            - wire_fix-2498
+      - fix-2498:
+          requires:
+            - alpha_fix-2498_2
+      - C_feat-5376:
+          requires:
+            - alpha_fix-2498_2
+      - phase_feat-5376_2:
+          requires:
+            - C_feat-5376
+      - feat-5376:
+          requires:
+            - phase_feat-5376_2
+      - prefetch_jun5-release:
+          requires:
+            - phase_feat-5376_2
+      - reserve_jun5-release_2:
+          requires:
+            - prefetch_jun5-release
+      - jun5-release:
+          requires:
+            - reserve_jun5-release_2
+      - bake_d-old:
+          requires:
+            - reserve_jun5-release_2
+      - A_d-old_2:
+          requires:
+            - bake_d-old
+      - d-old:
+          requires:
+            - A_d-old_2
+      - package_CORE-183
+      - CORE-183:
+          requires:
+            - package_CORE-183
+      - Delta_py311-test:
+          requires:
+            - package_CORE-183
+      - py311-test:
+          requires:
+            - Delta_py311-test
+      - phase2_ruby3-cov:
+          requires:
+            - Delta_py311-test
+      - ruby3-cov:
+          requires:
+            - phase2_ruby3-cov
+      - vendor_v4-canary2:
+          requires:
+            - phase2_ruby3-cov
+      - v4-canary2:
+          requires:
+            - vendor_v4-canary2
+      - Alpha_MERGE_DEV:
+          requires:
+            - vendor_v4-canary2
+      - MERGE_DEV:
+          requires:
+            - Alpha_MERGE_DEV
+      - do_india-6:
+          requires:
+            - Alpha_MERGE_DEV
+      - india-6:
+          requires:
+            - do_india-6
+      - ensure_Package_Service9:
+          requires:
+            - do_india-6
+      - Package_Service9:
+          requires:
+            - ensure_Package_Service9
+      - audit_DATA-608
+      - DATA-608:
+          requires:
+            - audit_DATA-608
+      - warmup_sierra:
+          requires:
+            - audit_DATA-608
+      - sierra:
+          requires:
+            - warmup_sierra
+      - inspect_hotfix-4234:
+          requires:
+            - warmup_sierra
+      - hotfix-4234:
+          requires:
+            - inspect_hotfix-4234
+      - inspect_PrepareImage:
+          requires:
+            - inspect_hotfix-4234
+      - PrepareImage:
+          requires:
+            - inspect_PrepareImage
+      - teardown_andromeda-v2:
+          requires:
+            - inspect_PrepareImage
+      - andromeda-v2:
+          requires:
+            - teardown_andromeda-v2
